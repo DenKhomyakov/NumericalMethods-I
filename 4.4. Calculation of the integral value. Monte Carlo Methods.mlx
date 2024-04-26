@@ -1,0 +1,68 @@
+global f;
+global a;
+global b;
+global errorRate;
+
+f = @(x) cos(x+x.^2+sqrt(x));
+a = pi/2;
+b = pi;
+errorRate = 0.005;
+
+rng('default');
+
+[ integralValue, nodes ] = SimplestMonteCarloMethod();
+fprintf("Простейший метод Монте-Карло:");
+fprintf("Интеграл: %.8g\n", integralValue);
+fprintf("Узлы: %.8g\n", nodes);
+
+[ integralValue, nodes] = GeometricMonteCarloMethod();
+fprintf("Геометрический метод Монте-Карло:");
+fprintf("Интеграл: %.8g\n", integralValue);
+fprintf("Узлы: %.8g\n", nodes);
+
+function [ integralValue, nodes ] = SimplestMonteCarloMethod()
+	global f;
+    global a;
+    global b;
+    global errorRate;
+
+	nodes = 2;
+	step = 2;
+	randomVariable = f(a + (b - a) * rand(nodes, 1));
+	integralValue = (b - a) * sum(randomVariable) / nodes;
+	integralVariance = (b - a) ^ 2 * sum(randomVariable .^ 2) / nodes - integralValue ^ 2;
+	
+	while 3 * sqrt(integralVariance / nodes) > errorRate
+		randomVariable = f(a + (b - a) * rand(step, 1));
+		
+		previousValue = integralValue;
+		integralValue = (nodes * integralValue + (b - a) * sum(randomVariable)) / (nodes + step);
+		integralVariance = (nodes * (integralVariance + previousValue ^ 2) + (b - a) ^ 2 * sum(randomVariable .^ 2)) / (nodes + step) - integralValue ^ 2;
+
+		nodes = nodes + step;
+	end
+end
+
+function [ integralValue, nodes ] = GeometricMonteCarloMethod()
+	global f;
+    global a;
+    global b;
+    global errorRate;
+
+	nodes = ceil(1 / (4 * 0.01 * errorRate ^ 2));
+    leftBoundary = -1;
+    rightBoundary = 1;
+    fi = @(x) (f(x) - leftBoundary) / (rightBoundary - leftBoundary);
+    count = 0;
+
+    for k = 1 : nodes
+        randomVariableX = rand;
+	    randomProbability = rand;
+
+        if fi(a + (b - a).*randomVariableX) >= randomProbability
+           count = count + 1;
+        end
+    end
+
+   integralValue = abs((rightBoundary - leftBoundary) * (b - a) * (count / nodes) + leftBoundary * (b - a));
+end

@@ -1,0 +1,56 @@
+global f;
+global errorRate;
+
+f = @(x) cos(x+x.^2);
+a = pi/2;
+b = pi;
+p = @(x) sqrt(x - a);
+errorRate = 0.000005;
+
+[ integralValue, nodes ] = IntegralOverSixNodes();
+fprintf("Интеграл: %.15g\n", integralValue);
+fprintf("Узлы: %.15g\n", nodes);
+
+[ integralValue, nodes ] = IntegralOverSevenNodes();
+fprintf("Интеграл: %.15g\n", integralValue);
+fprintf("Узлы: %.15g\n", nodes);
+
+[ integralValue, nodes ] = IntegralErrorRate();
+fprintf("Интеграл (с заданной точностью): %.15g\n", integralValue);
+fprintf("Узлы: %.15g\n", nodes);
+
+function [ integralValue, nodes ] = IntegralOverSixNodes()
+	global f;
+    global errorRate;
+
+	nodes = 6;
+	k = 1 : nodes;
+    
+	integralValue = sum(f( cos(k*pi/(nodes+1))).*(sin(k*pi/(nodes+1))).^2).*(pi/(nodes+1));
+end
+
+function [ integralValue, nodes ] = IntegralOverSevenNodes()
+	global f;
+    global errorRate;
+
+	nodes = 7;
+	k = 1 : nodes; 
+
+	integralValue = sum(f(cos(k*pi/(nodes+1))).*(sin(k*pi/(nodes+1))).^2  ).*(pi/(nodes+1));
+end
+
+function [ integralValue, nodes ] = IntegralErrorRate()
+	global f;
+    global errorRate;
+	
+	previousValue = 0; 
+	integralValue = 1;
+	nodes = 7;
+
+	while abs(integralValue - previousValue) > errorRate
+		nodes = nodes + 1;
+		k = 1 : nodes;
+	    previousValue = integralValue;
+		integralValue = sum(f(cos(k*pi/(nodes+1))).*(sin(k*pi/(nodes+1))).^2 ).*(pi/(nodes+1));
+	end
+end
